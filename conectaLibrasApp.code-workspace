@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"name": "conectaLibras",
+			"path": "../../Documents/PlatformIO/Projects/conectaLibras"
+		}
+	],
+	"settings": {}
+}
