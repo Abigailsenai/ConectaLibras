@@ -23,10 +23,13 @@
       "edgeToEdgeEnabled": true,
       "package": "com.abigailsenai.conectaLibrasApp",
       "permissions": [
-        "android.permission.RECORD_AUDIO",
         "android.permission.INTERNET",
-        "android.permission.MODIFY_AUDIO_SETTINGS"
-      ]
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.WAKE_LOCK"
+      ],
+      "config": {
+        "googleMobileAdsAppId": "ca-app-pub-3940256099942544~3347511713"
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -37,7 +40,7 @@
       [
         "expo-av",
         {
-          "microphonePermission": "Este aplicativo precisa acessar o microfone para gravar áudio e reproduzir sons."
+          "microphonePermission": false
         }
       ]
     ]

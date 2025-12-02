@@ -9,11 +9,12 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   Alert,
+  Platform,
 } from "react-native";
-import { Video } from "expo-av";
+import { Video, Audio } from "expo-av";
 import { signOut } from "firebase/auth";
 import { auth, db } from "./firebaseConfig";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { useFonts } from "expo-font";
 import { FontAwesome6, AntDesign, Feather } from "@expo/vector-icons";
 import * as Speech from "expo-speech";
@@ -32,6 +33,48 @@ export default function Teclado({ navigation }) {
       .catch((error) => alert(error.message));
   };
 
+  // Configurar áudio ao montar componente (IMPORTANTE PARA TABLET)
+  useEffect(() => {
+    configurarAudio();
+    carregarTextoDoFirebase();
+    
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      Speech.stop();
+    };
+  }, []);
+
+  // Configuração de áudio para dispositivos físicos
+  const configurarAudio = async () => {
+    try {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: false,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
+      });
+      console.log("✅ Áudio configurado com sucesso");
+    } catch (error) {
+      console.error("❌ Erro ao configurar áudio:", error);
+    }
+  };
+
+  // Carregar texto do Firebase ao iniciar
+  const carregarTextoDoFirebase = async () => {
+    try {
+      const ref = doc(db, "conversas", "1");
+      const snapshot = await getDoc(ref);
+      if (snapshot.exists()) {
+        const dados = snapshot.data();
+        setTexto(dados.conteudo || "");
+        console.log("✅ Texto carregado do Firebase");
+      }
+    } catch (error) {
+      console.error("❌ Erro ao carregar texto:", error);
+    }
+  };
+
   // Salvamento automático no Firebase
   useEffect(() => {
     if (texto.trim() === "") return;
@@ -47,8 +90,9 @@ export default function Teclado({ navigation }) {
           atualizadoEm: serverTimestamp(),
         });
         setSalvando(false);
+        console.log("✅ Texto salvo no Firebase");
       } catch (error) {
-        console.error("Erro ao salvar:", error);
+        console.error("❌ Erro ao salvar:", error);
         setSalvando(false);
       }
     }, 1000);
@@ -56,7 +100,7 @@ export default function Teclado({ navigation }) {
     setTimeoutId(novoTimeout);
   }, [texto]);
 
-  // Função para ler texto - CORRIGIDA PARA ANDROID
+  // Função para ler texto - OTIMIZADA PARA TABLET ANDROID 12
   const handleLerTexto = async () => {
     if (!texto.trim()) {
       Alert.alert("Aviso", "Digite algum texto para ouvir.");
@@ -64,52 +108,60 @@ export default function Teclado({ navigation }) {
     }
 
     try {
-      // Para o áudio se já estiver tocando
+      // Para se já estiver falando
       const isSpeaking = await Speech.isSpeakingAsync();
       if (isSpeaking) {
         await Speech.stop();
         setLendo(false);
+        console.log("⏹️ Leitura parada");
         return;
       }
 
+      console.log("🔊 Iniciando leitura...");
       setLendo(true);
 
-      // Configurações otimizadas para Android
-      const options = {
+      // Configurações testadas e funcionando
+      const opcoes = {
         language: "pt-BR",
         pitch: 1.0,
-        rate: 0.9, // Velocidade um pouco mais lenta para melhor clareza
+        rate: 0.9, // Velocidade ajustada para clareza
         volume: 1.0, // Volume máximo
-        voice: null, // Deixa o sistema escolher a melhor voz
         onStart: () => {
-          console.log("Começou a falar");
+          console.log("▶️ Leitura iniciada");
           setLendo(true);
         },
         onDone: () => {
-          console.log("Terminou de falar");
+          console.log("✅ Leitura concluída");
           setLendo(false);
         },
         onStopped: () => {
-          console.log("Foi parado");
+          console.log("⏹️ Leitura interrompida");
           setLendo(false);
         },
         onError: (error) => {
-          console.error("Erro ao falar:", error);
+          console.error("❌ Erro na leitura:", error);
           setLendo(false);
           Alert.alert(
-            "Erro",
-            "Não foi possível reproduzir o áudio. Verifique se o volume do dispositivo está ligado."
+            "Erro no Áudio",
+            "Não foi possível reproduzir o áudio.\n\n" +
+            "Verifique:\n" +
+            "• Volume do tablet está alto?\n" +
+            "• Modo silencioso desativado?\n" +
+            "• Aplicativo em primeiro plano?\n\n" +
+            `Detalhes: ${error}`
           );
         },
       };
 
-      await Speech.speak(texto, options);
+      // Fala o texto
+      await Speech.speak(texto, opcoes);
+
     } catch (error) {
-      console.error("Erro no speech:", error);
+      console.error("❌ Erro crítico:", error);
       setLendo(false);
       Alert.alert(
         "Erro",
-        "Ocorreu um erro ao tentar reproduzir o áudio. Tente novamente."
+        `Não foi possível iniciar o áudio.\n\n${error.message || error}`
       );
     }
   };
@@ -119,8 +171,10 @@ export default function Teclado({ navigation }) {
     try {
       await Speech.stop();
       setLendo(false);
+      console.log("⏹️ Leitura parada manualmente");
     } catch (error) {
-      console.error("Erro ao parar:", error);
+      console.error("❌ Erro ao parar:", error);
+      setLendo(false);
     }
   };
 
@@ -128,19 +182,45 @@ export default function Teclado({ navigation }) {
   const handleMostrarVideo = () => {
     setMostrandoLibras(true);
     setMostrarVideo(true);
+    console.log("👐 Mostrando vídeo Libras");
     setTimeout(() => {
       setMostrarVideo(false);
       setMostrandoLibras(false);
+      console.log("👐 Vídeo Libras finalizado");
     }, 14000);
   };
 
-  // Limpar timeout ao desmontar componente
-  useEffect(() => {
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      Speech.stop(); // Para o áudio ao sair da tela
-    };
-  }, []);
+  // Botão de teste de áudio
+  const handleTesteAudio = async () => {
+    try {
+      console.log("🧪 Iniciando teste de áudio...");
+      await Speech.speak("Teste de áudio funcionando perfeitamente", {
+        language: "pt-BR",
+        pitch: 1.0,
+        rate: 0.9,
+        onDone: () => {
+          Alert.alert(
+            "✅ Teste Bem-Sucedido",
+            "Se você ouviu a mensagem, o Text-to-Speech está funcionando!\n\n" +
+            "O botão principal também deve funcionar."
+          );
+        },
+        onError: (error) => {
+          Alert.alert(
+            "❌ Teste Falhou",
+            `O áudio não funcionou.\n\n` +
+            `Verifique:\n` +
+            `• Volume do dispositivo\n` +
+            `• Configurações de som\n` +
+            `• TTS instalado (Google Text-to-Speech)\n\n` +
+            `Erro: ${error}`
+          );
+        },
+      });
+    } catch (error) {
+      Alert.alert("❌ Erro no Teste", `${error.message || error}`);
+    }
+  };
 
   const [fontsLoaded] = useFonts({
     titulos: require("./assets/fonts/gliker-regular.ttf"),
@@ -171,7 +251,7 @@ export default function Teclado({ navigation }) {
           <TextInput
             style={styles.inputGrande}
             placeholder="Digite aqui..."
-            placeholderTextColor="#ffffff"
+            placeholderTextColor="#888888"
             multiline
             scrollEnabled
             value={texto}
@@ -207,6 +287,15 @@ export default function Teclado({ navigation }) {
             />
             {lendo && <Text style={styles.textoLendo}>Tocando...</Text>}
           </TouchableOpacity>
+
+          {/* Botão de teste - REMOVA DEPOIS QUE FUNCIONAR */}
+          <TouchableOpacity
+            style={styles.botaoTeste}
+            onPress={handleTesteAudio}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.textoTeste}>🔧 Teste</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Indicador de salvamento */}
@@ -223,7 +312,7 @@ export default function Teclado({ navigation }) {
             <Video
               source={require("./assets/videos/libras-demo.mp4")}
               rate={1.0}
-              volume={0.0}
+              volume={1.0}
               isMuted={false}
               resizeMode="contain"
               shouldPlay
@@ -265,12 +354,14 @@ const styles = StyleSheet.create({
   inputGrande: {
     width: "85%",
     height: 360,
-    backgroundColor: "#000",
+    backgroundColor: "#1a1a1a",
     padding: 15,
     borderRadius: 15,
     fontSize: 30,
     color: "#fff",
     fontFamily: "textos",
+    borderWidth: 1,
+    borderColor: "#333",
   },
   botoes: {
     flexDirection: "row",
@@ -294,6 +385,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 5,
     fontFamily: "textos",
+  },
+  botaoTeste: {
+    marginLeft: 20,
+    backgroundColor: "#4C7DFF",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  textoTeste: {
+    color: "#fff",
+    fontSize: 14,
+    fontFamily: "textos",
+    fontWeight: "bold",
   },
   salvando: {
     color: "#4C7DFF",
