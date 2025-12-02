@@ -1,77 +1,113 @@
 // HomeScreen.js
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Image, ActivityIndicator,} from "react-native";
-import { signOut } from "firebase/auth";
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  ActivityIndicator,
+} from "react-native";
+import { useFonts } from "expo-font";
 import { auth } from "./firebaseConfig";
-import { useFonts } from 'expo-font';
+import { onAuthStateChanged, reload } from "firebase/auth";
 
 export default function HomeScreen({ navigation }) {
-  const handleIntro = () => {
-    signOut(auth)
-      .then(() => {
-        navigation.replace("Voltar"); // vai pra página principal
-      })
-      .catch((error) => {
-        alert(error.message);
-      });
-  };
- const [fontsLoaded] = useFonts({
-    "titulos": require('./assets/fonts/gliker-regular.ttf'),
-    "textos": require('./assets/fonts/sanchez-font.ttf'),
+  const [fontsLoaded] = useFonts({
+    titulos: require("./assets/fonts/gliker-regular.ttf"),
+    textos: require("./assets/fonts/sanchez-font.ttf"),
   });
 
-if (!fontsLoaded) {
-  return (
-    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-      <ActivityIndicator size="large" color="#4C7DFF" />
-    </View>
-  );
-}
+  const [userName, setUserName] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // 🔹 Observa o usuário logado e obtém o nome salvo no Authentication
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      try {
+        if (user) {
+          // força recarregar dados atualizados (garante pegar displayName recente)
+          await reload(user);
+          console.log("Nome do usuário logado:", user.displayName); // 🔹 TESTE
+          setUserName(user.displayName || "Usuário");
+        } else {
+          setUserName("Visitante");
+        }
+      } catch (error) {
+        console.log("Erro ao buscar nome do usuário:", error);
+        setUserName("Usuário");
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+ const handleIntro = () => {
+  navigation.navigate("Voltar"); // Em vez de replace
+};
+  if (!fontsLoaded || loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#4C7DFF" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-       <Image
-        source={require('./assets/img/Logo2.png')}
+      <Image
+        source={require("./assets/img/Logo2.png")}
         style={styles.imagem}
       />
-      <Text style={styles.titulo}>Sua comunicação no Conecta Libras</Text>
+
+      {/* 🔹 Exibe o nome salvo no Firebase Authentication */}
+      <Text style={styles.titulo}>Olá, {userName}!</Text>
+
       <Text style={styles.texto}>
-        Transcreva fala em libras, texto em fala ou vice-versa, nos propomos a
-        auxiliar a comunicação de deficientes auditivos em ambiente escolar e na
-        vida!
+        Transcreva fala em libras, texto em fala ou vice-versa. Nosso app ajuda
+        na comunicação de pessoas com deficiência auditiva!
       </Text>
+
       <TouchableOpacity style={styles.botao} onPress={handleIntro}>
         <Text style={styles.textoBotao}>Vamos começar!</Text>
       </TouchableOpacity>
     </View>
   );
 }
+
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#01283C",
   },
-  imagem:{
-    width: '100%', 
-    height: 400,
+  imagem: {
+    width: "100%",
+    height: 810,
     marginBottom: 20,
   },
   titulo: {
-    fontSize: 30,
+    fontSize: 40,
     marginBottom: 20,
     color: "#fff",
-    fontFamily: "titulos",   
-    textAlign: 'center',
-  
+    fontFamily: "titulos",
+    textAlign: "center",
   },
   texto: {
-    fontSize: 25,
-    marginBottom: 15,
+    fontSize: 32,
+    marginBottom: 30,
     color: "#fff",
-    fontFamily: "textos", 
-    textAlign: 'center',
+    fontFamily: "textos",
+    textAlign: "center",
+    paddingHorizontal: 20,
   },
   botao: {
     backgroundColor: "#FFBE1D",
@@ -82,6 +118,6 @@ const styles = StyleSheet.create({
   textoBotao: {
     color: "#01283C",
     fontSize: 25,
-    fontFamily: "titulos",    
+    fontFamily: "titulos",
   },
 });

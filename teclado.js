@@ -1,4 +1,3 @@
-//teclado
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -9,6 +8,7 @@ import {
   TextInput,
   Keyboard,
   TouchableWithoutFeedback,
+  Alert,
 } from "react-native";
 import { Video } from "expo-av";
 import { signOut } from "firebase/auth";
@@ -56,18 +56,72 @@ export default function Teclado({ navigation }) {
     setTimeoutId(novoTimeout);
   }, [texto]);
 
-  // Função para ler texto
+  // Função para ler texto - CORRIGIDA PARA ANDROID
   const handleLerTexto = async () => {
-    if (!texto.trim()) return;
-    setLendo(true);
-    await Speech.speak(texto, {
-      language: "pt-BR",
-      pitch: 1,
-      rate: 1,
-      onDone: () => setLendo(false),
-      onStopped: () => setLendo(false),
-      onError: () => setLendo(false),
-    });
+    if (!texto.trim()) {
+      Alert.alert("Aviso", "Digite algum texto para ouvir.");
+      return;
+    }
+
+    try {
+      // Para o áudio se já estiver tocando
+      const isSpeaking = await Speech.isSpeakingAsync();
+      if (isSpeaking) {
+        await Speech.stop();
+        setLendo(false);
+        return;
+      }
+
+      setLendo(true);
+
+      // Configurações otimizadas para Android
+      const options = {
+        language: "pt-BR",
+        pitch: 1.0,
+        rate: 0.9, // Velocidade um pouco mais lenta para melhor clareza
+        volume: 1.0, // Volume máximo
+        voice: null, // Deixa o sistema escolher a melhor voz
+        onStart: () => {
+          console.log("Começou a falar");
+          setLendo(true);
+        },
+        onDone: () => {
+          console.log("Terminou de falar");
+          setLendo(false);
+        },
+        onStopped: () => {
+          console.log("Foi parado");
+          setLendo(false);
+        },
+        onError: (error) => {
+          console.error("Erro ao falar:", error);
+          setLendo(false);
+          Alert.alert(
+            "Erro",
+            "Não foi possível reproduzir o áudio. Verifique se o volume do dispositivo está ligado."
+          );
+        },
+      };
+
+      await Speech.speak(texto, options);
+    } catch (error) {
+      console.error("Erro no speech:", error);
+      setLendo(false);
+      Alert.alert(
+        "Erro",
+        "Ocorreu um erro ao tentar reproduzir o áudio. Tente novamente."
+      );
+    }
+  };
+
+  // Função para parar a leitura
+  const handlePararLeitura = async () => {
+    try {
+      await Speech.stop();
+      setLendo(false);
+    } catch (error) {
+      console.error("Erro ao parar:", error);
+    }
   };
 
   // Função para mostrar Libras por 14 segundos
@@ -79,6 +133,14 @@ export default function Teclado({ navigation }) {
       setMostrandoLibras(false);
     }, 14000);
   };
+
+  // Limpar timeout ao desmontar componente
+  useEffect(() => {
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      Speech.stop(); // Para o áudio ao sair da tela
+    };
+  }, []);
 
   const [fontsLoaded] = useFonts({
     titulos: require("./assets/fonts/gliker-regular.ttf"),
@@ -123,7 +185,7 @@ export default function Teclado({ navigation }) {
           <TouchableOpacity
             style={styles.libra}
             onPress={handleMostrarVideo}
-            activeOpacity={0.14}
+            activeOpacity={0.7}
           >
             <FontAwesome6
               name="hands"
@@ -134,17 +196,23 @@ export default function Teclado({ navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.som}
-            onPress={handleLerTexto}
+            style={[styles.som, lendo && styles.somAtivo]}
+            onPress={lendo ? handlePararLeitura : handleLerTexto}
             activeOpacity={0.7}
           >
             <AntDesign
-              name="sound"
+              name={lendo ? "pausecircle" : "sound"}
               size={45}
               color={lendo ? "#FFD05A" : "#fff"}
             />
+            {lendo && <Text style={styles.textoLendo}>Tocando...</Text>}
           </TouchableOpacity>
         </View>
+
+        {/* Indicador de salvamento */}
+        {salvando && (
+          <Text style={styles.salvando}>Salvando automaticamente...</Text>
+        )}
 
         {/* Linha divisória */}
         <View style={styles.linha} />
@@ -155,7 +223,7 @@ export default function Teclado({ navigation }) {
             <Video
               source={require("./assets/videos/libras-demo.mp4")}
               rate={1.0}
-              volume={1.0}
+              volume={0.0}
               isMuted={false}
               resizeMode="contain"
               shouldPlay
@@ -215,8 +283,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  somAtivo: {
+    opacity: 0.8,
+  },
   libra: {
     marginLeft: 20,
+  },
+  textoLendo: {
+    color: "#FFD05A",
+    fontSize: 12,
+    marginTop: 5,
+    fontFamily: "textos",
+  },
+  salvando: {
+    color: "#4C7DFF",
+    fontSize: 12,
+    marginTop: 10,
+    fontFamily: "textos",
   },
   linha: {
     height: 2,

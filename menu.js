@@ -24,19 +24,48 @@ export default function Menu({ navigation }) {
     textos: require("./assets/fonts/sanchez-font.ttf"),
   });
 
-  // 🔹 Buscar o nome do usuário do Firebase Authentication
   useEffect(() => {
+    console.log("🔍 Menu montado, verificando autenticação...");
+    
+    // Pequeno delay para garantir que o Firebase está pronto
+    const checkAuth = async () => {
+      // Aguarda 100ms para o Firebase estabilizar
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const currentUser = auth.currentUser;
+      console.log("🔑 auth.currentUser:", currentUser ? currentUser.email : "null");
+      
+      if (currentUser) {
+        console.log("✅ Usuário já autenticado:", currentUser.email);
+        console.log("📝 DisplayName:", currentUser.displayName);
+        setUserName(currentUser.displayName || "usuário");
+        setLoadingName(false);
+      }
+    };
+    
+    checkAuth();
+    
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log("👤 onAuthStateChanged disparado no Menu");
       try {
         if (user) {
-          await reload(user); // garante dados atualizados
-          console.log("Usuário autenticado:", user.displayName); // 🔹 teste
+          console.log("✅ Usuário encontrado:", user.email);
+          await reload(user);
+          console.log("📝 DisplayName após reload:", user.displayName);
           setUserName(user.displayName || "usuário");
         } else {
-          setUserName("Visitante");
+          console.log("❌ Nenhum usuário autenticado");
+          // Tenta uma última vez buscar o currentUser
+          const fallbackUser = auth.currentUser;
+          if (fallbackUser) {
+            console.log("🔄 Fallback: Usuário encontrado via currentUser");
+            setUserName(fallbackUser.displayName || "usuário");
+          } else {
+            setUserName("Visitante");
+          }
         }
       } catch (error) {
-        console.log("Erro ao buscar nome do usuário:", error);
+        console.log("⚠️ Erro ao buscar nome do usuário:", error);
         setUserName("usuário");
       } finally {
         setLoadingName(false);
@@ -55,13 +84,7 @@ export default function Menu({ navigation }) {
   }
 
   const Fechar = () => {
-    signOut(auth)
-      .then(() => {
-        navigation.replace("Principal");
-      })
-      .catch((error) => {
-        alert(error.message);
-      });
+    navigation.navigate("Voltar");
   };
 
   const Sair = () => {

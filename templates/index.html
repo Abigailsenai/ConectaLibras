@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gravação e Transcrição por Locutor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .record-section {
+            background: #f8f9fa;
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .record-section:hover {
+            border-color: #764ba2;
+            background: #f0f0f5;
+        }
+
+        .record-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 20px 60px;
+            border-radius: 50px;
+            font-size: 1.3em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .record-btn:hover {
+            background: #c82333;
+            transform: scale(1.05);
+        }
+
+        .record-btn.recording {
+            background: #28a745;
+            animation: pulse 1.5s infinite;
+        }
+
+        .record-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: scale(1);
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .status-message {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2em;
+            color: #666;
+            min-height: 30px;
+        }
+
+        .status-message.recording {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .status-message.processing {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .status-message.success {
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .dialogue-section {
+            margin-top: 20px;
+        }
+
+        .dialogue-entry {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            position: relative;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dialogue-entry.speaker-1 {
+            border-left: 5px solid #667eea;
+            margin-right: 50px;
+        }
+
+        .dialogue-entry.speaker-2 {
+            border-left: 5px solid #764ba2;
+            margin-left: 50px;
+        }
+
+        .dialogue-entry.speaker-3 {
+            border-left: 5px solid #f093fb;
+            margin-right: 50px;
+        }
+
+        .dialogue-entry.speaker-4 {
+            border-left: 5px solid #4facfe;
+            margin-left: 50px;
+        }
+
+        .dialogue-entry.speaker-5 {
+            border-left: 5px solid #43e97b;
+            margin-right: 50px;
+        }
+
+        .speaker-label {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .speaker-1 .speaker-label { color: #667eea; }
+        .speaker-2 .speaker-label { color: #764ba2; }
+        .speaker-3 .speaker-label { color: #f093fb; }
+        .speaker-4 .speaker-label { color: #4facfe; }
+        .speaker-5 .speaker-label { color: #43e97b; }
+
+        .speaker-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .speaker-1 .speaker-icon { background: #667eea; color: white; }
+        .speaker-2 .speaker-icon { background: #764ba2; color: white; }
+        .speaker-3 .speaker-icon { background: #f093fb; color: white; }
+        .speaker-4 .speaker-icon { background: #4facfe; color: white; }
+        .speaker-5 .speaker-icon { background: #43e97b; color: white; }
+
+        .speaker-text {
+            color: #333;
+            line-height: 1.8;
+            font-size: 1.05em;
+        }
+
+        .timestamp {
+            font-size: 0.85em;
+            color: #999;
+            margin-top: 8px;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #dc3545;
+            margin-top: 20px;
+        }
+
+        .section-title {
+            color: #333;
+            margin: 30px 0 15px 0;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .confidence-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+
+        .instruction-text {
+            font-size: 1.1em;
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Gravação e Transcrição por Locutor</h1>
+        
+        <div class="record-section">
+            <p class="instruction-text">
+                <strong>Clique uma vez</strong> para iniciar a gravação<br>
+                <strong>Clique novamente</strong> para parar e transcrever automaticamente
+            </p>
+            <button class="record-btn" id="recordBtn">🔴 Iniciar Gravação</button>
+            <div class="status-message" id="statusMessage"></div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processando transcrição... Por favor, aguarde.</p>
+        </div>
+
+        <div class="results" id="results"></div>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
+        const recordBtn = document.getElementById('recordBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+
+        recordBtn.addEventListener('click', async function() {
+            if (!isRecording) {
+                // Inicia gravação
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = (event) => {
+                        audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstop = async () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        await processAudio(audioBlob);
+                    };
+
+                    mediaRecorder.start();
+                    isRecording = true;
+                    recordBtn.textContent = '⏹️ Parar e Transcrever';
+                    recordBtn.classList.add('recording');
+                    statusMessage.textContent = '🎙️ Gravando... Clique novamente para parar';
+                    statusMessage.classList.add('recording');
+                    statusMessage.classList.remove('processing', 'success');
+                    
+                    // Limpa resultados anteriores
+                    results.style.display = 'none';
+                    results.innerHTML = '';
+                } catch (error) {
+                    alert('Erro ao acessar microfone: ' + error.message);
+                }
+            } else {
+                // Para gravação e processa automaticamente
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                isRecording = false;
+                recordBtn.textContent = '🔴 Iniciar Gravação';
+                recordBtn.classList.remove('recording');
+                recordBtn.disabled = true;
+                statusMessage.textContent = '⏳ Salvando e processando...';
+                statusMessage.classList.remove('recording');
+                statusMessage.classList.add('processing');
+            }
+        });
+
+        async function processAudio(audioBlob) {
+            try {
+                // Passo 1: Salvar áudio
+                statusMessage.textContent = '💾 Salvando áudio...';
+                const saveSuccess = await saveAudio(audioBlob);
+                
+                if (!saveSuccess) {
+                    throw new Error('Falha ao salvar o áudio');
+                }
+                
+                // Passo 2: Transcrever
+                statusMessage.textContent = '🔄 Transcrevendo...';
+                loading.style.display = 'block';
+                
+                const response = await fetch('/transcribe', {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                displayResults(data.results);
+                statusMessage.textContent = '✅ Transcrição concluída!';
+                statusMessage.classList.remove('processing');
+                statusMessage.classList.add('success');
+                
+            } catch (error) {
+                results.innerHTML = `<div class="error">❌ Erro: ${error.message}</div>`;
+                results.style.display = 'block';
+                statusMessage.textContent = '❌ Erro no processamento';
+                statusMessage.classList.remove('processing');
+            } finally {
+                loading.style.display = 'none';
+                recordBtn.disabled = false;
+            }
+        }
+
+        async function saveAudio(audioBlob) {
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'audio2.wav');
+
+            try {
+                const response = await fetch('/save_audio', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                return data.success;
+            } catch (error) {
+                console.error('Erro ao salvar áudio:', error);
+                return false;
+            }
+        }
+
+        function displayResults(resultsData) {
+            let html = '';
+
+            resultsData.forEach((result, index) => {
+                html += `
+                    <div class="result-card">
+                        <h3 class="section-title">
+                            💬 Diálogo Completo
+                            <span class="confidence-badge">Confiança: ${result.confidence}%</span>
+                        </h3>
+                        <div class="dialogue-section">
+                `;
+
+                // Exibe o diálogo na ordem cronológica
+                if (result.dialogue) {
+                    result.dialogue.forEach((entry, idx) => {
+                        const speakerNum = entry.speaker;
+                        const speakerClass = `speaker-${speakerNum}`;
+                        
+                        html += `
+                            <div class="dialogue-entry ${speakerClass}">
+                                <div class="speaker-label">
+                                    <div class="speaker-icon">${speakerNum}</div>
+                                    Locutor ${speakerNum}
+                                </div>
+                                <div class="speaker-text">${entry.text}</div>
+                                <div class="timestamp">⏱️ ${entry.start}s - ${entry.end}s</div>
+                            </div>
+                        `;
+                    });
+                }
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            results.innerHTML = html;
+            results.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

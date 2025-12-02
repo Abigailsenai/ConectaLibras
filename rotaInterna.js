@@ -1,4 +1,3 @@
-//rotaInterna
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { FontAwesome6, AntDesign, FontAwesome5 } from "@expo/vector-icons";
 import Audio from "./audio";
@@ -19,14 +18,16 @@ export default function RotaInterna() {
           backgroundColor: "#01283C",
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
-          height: 170,
-          paddingBottom: 53,
+          height: 250,
+          paddingBottom: 10,
+          paddingTop: 10,
           position: "absolute",
           bottom: 0,
           left: 0,
           right: 0,
           borderTopWidth: 0,
-          overflow: "hidden",
+          elevation: 0,
+          shadowOpacity: 0,
         },
       }}
     >
@@ -41,21 +42,21 @@ export default function RotaInterna() {
                 backgroundColor: focused ? "#FFD05A" : "#419EBD",
                 height: 100,
                 width: 100,
-                borderRadius: 100,
+                borderRadius: 50,
                 alignItems: "center",
                 justifyContent: "center",
-                top: 25,
               }}
             >
               <FontAwesome5 
-              name="home" 
-              size={55} 
-              color={focused ? "#000" : "#FFFFFF"}
-               />
+                name="home" 
+                size={50} 
+                color={focused ? "#000" : "#FFFFFF"}
+              />
             </View>
           ),
         }}
       />
+      
       {/* Tela Teclado */}
       <Tab.Screen
         name="Teclado"
@@ -67,22 +68,21 @@ export default function RotaInterna() {
                 backgroundColor: focused ? "#FFD05A" : "#419EBD",
                 height: 100,
                 width: 100,
-                borderRadius: 100,
+                borderRadius: 50,
                 alignItems: "center",
                 justifyContent: "center",
-                top: 25,
               }}
             >
               <FontAwesome6
                 name="keyboard"
-                size={55}
+                size={50}
                 color={focused ? "#000" : "#FFFFFF"}
               />
             </View>
           ),
         }}
       />
-
+      
       {/* Tela Libras */}
       <Tab.Screen
         name="Libras"
@@ -94,23 +94,22 @@ export default function RotaInterna() {
                 backgroundColor: focused ? "#FFD05A" : "#419EBD",
                 height: 100,
                 width: 100,
-                borderRadius: 100,
+                borderRadius: 50,
                 alignItems: "center",
                 justifyContent: "center",
-                top: 25,
               }}
             >
               <FontAwesome6
                 name="hands"
-                size={55}
+                size={50}
                 color={focused ? "#000" : "#FFFFFF"}
-                style={{ transform: [{ rotate: "45deg" }] }}
+                style={{ transform: [{ rotate: "50deg" }] }}
               />
             </View>
           ),
         }}
       />
-
+      
       {/* Tela Áudio */}
       <Tab.Screen
         name="Audio"
@@ -122,15 +121,14 @@ export default function RotaInterna() {
                 backgroundColor: focused ? "#FFD05A" : "#419EBD",
                 height: 100,
                 width: 100,
-                borderRadius: 100,
+                borderRadius: 50,
                 alignItems: "center",
                 justifyContent: "center",
-                top: 25,
               }}
             >
               <AntDesign
                 name="sound"
-                size={55}
+                size={50}
                 color={focused ? "#000" : "#FFFFFF"}
               />
             </View>

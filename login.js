@@ -1,4 +1,4 @@
-//LoginScreen
+// LoginScreen.js
 import React, { useState } from "react";
 import {
   View,
@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Image,
-  Linking, 
 } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "./firebaseConfig";
@@ -46,34 +45,18 @@ export default function Login({ navigation }) {
       </View>
     );
   }
-  
-  const openGoogle = () => {
-    Linking.openURL("https://www.google.com")
-      .catch((err) => console.error("Erro ao abrir URL:", err));
-  };
-  const openFace = () => {
-    Linking.openURL("https://www.facebook.com/?locale=pt_BR")
-      .catch((err) => console.error("Erro ao abrir URL:", err));
-  };
-  const openApple = () => {
-    Linking.openURL("https://www.icloud.com/")
-      .catch((err) => console.error("Erro ao abrir URL:", err));
-  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.containerImagem}>
-        <View style={styles.imagemCaixa1}>
-          <Image
-            source={require("./assets/img/Circulo1.png")}
-            style={styles.imagem1}
-          />
-        </View>
+      {/* topo azul com logo */}
+      <View style={styles.header}>
         <Image
-          source={require("./assets/img/Logo4.png")}
-          style={styles.imagem2}
+          source={require("./assets/img/Login.png")}
+          style={styles.logo}
+          resizeMode="contain"
         />
-        <Text style={styles.titulo}>Login</Text>
       </View>
+
       {/* campos de entrada */}
       <View style={styles.form}>
         <Text style={styles.label}>Email</Text>
@@ -108,7 +91,7 @@ export default function Login({ navigation }) {
 
       {/* imagens dos logins sociais */}
       <View style={styles.socialContainer}>
-        <TouchableOpacity onPress={openGoogle}>
+        <TouchableOpacity>
           <Image
             source={require("./assets/img/Google.png")}
             style={styles.socialIcon}
@@ -116,7 +99,7 @@ export default function Login({ navigation }) {
           />
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={openFace}>
+        <TouchableOpacity>
           <Image
             source={require("./assets/img/face.png")}
             style={styles.socialIcon}
@@ -124,7 +107,7 @@ export default function Login({ navigation }) {
           />
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={openApple}>
+        <TouchableOpacity>
           <Image
             source={require("./assets/img/apple.png")}
             style={styles.socialIcon}
@@ -147,47 +130,35 @@ export default function Login({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "flex-start",
-    backgroundColor: "#fff",
+    backgroundColor: "white",
   },
-  containerImagem: {
-    justifyContent: "flex-start",
-    height: 650,
-  },
-  imagemCaixa1: {
+  header: {
+    backgroundColor: "#01283C",
     alignItems: "center",
-    width: "100%",
-    height: 630,
-    position: "relative",
+    borderBottomLeftRadius: 370,
+    borderBottomRightRadius: 370,
+    paddingTop: 50,
+    paddingBottom: 30,
   },
-  imagem1: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 10,
-  },
-  imagem2: {
-    width: "90%",
-    height: 430,
-    position: "absolute",
-    right: 40,
-    top: 40,
+  logo: {
+    width: 800,
+    height: 500,
   },
   titulo: {
-    fontSize: 65,
-    marginBottom: 20,
-    position: "absolute",
-    left: 330,
-    top: 490,
     color: "#fff",
+    fontSize: 28,
     fontFamily: "titulos",
-  },
-    label: {
-    fontSize: 35,
-    fontFamily: "titulos",
-    marginBottom: 20,
+    marginTop: 10,
   },
   form: {
+    marginTop: 30,
     paddingHorizontal: 25,
+  },
+  label: {
+    color: "#01283C",
+    fontSize: 35,
+    fontFamily: "titulos",
+    marginBottom: 5,
   },
   input: {
     borderWidth: 1.3,

@@ -45,18 +45,17 @@ export default function Libras({ navigation }) {
   const handleMostrarVideo = () => {
     setMostrandoLibras(true);
     setMostrarVideo(true);
-    setIconeSom("sound"); // muda o ícone ao clicar
+    setIconeSom("sound");
     iniciarAnimacaoCores();
 
     setTimeout(() => {
       setMostrarVideo(false);
       setMostrandoLibras(false);
       setCorIcone("#fff");
-      setIconeSom("sound-mute"); // volta ao estado inicial
+      setIconeSom("sound-mute");
     }, 14000);
   };
 
-  // alterna cores a cada 2 segundos durante os 14s
   const iniciarAnimacaoCores = () => {
     const cores = ["#FFD05A"];
     let index = 0;
@@ -97,7 +96,7 @@ export default function Libras({ navigation }) {
           <Video
             source={require("./assets/videos/libras-demo.mp4")}
             rate={1.0}
-            volume={1.0}
+            volume={0.0}
             isMuted={false}
             resizeMode="contain"
             shouldPlay
