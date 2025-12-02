@@ -48,13 +48,18 @@ export default function Login({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* topo azul com logo */}
-      <View style={styles.header}>
+      <View style={styles.containerImagem}>
+        <View style={styles.imagemCaixa1}>
+          <Image
+            source={require("./assets/img/Circulo1.png")}
+            style={styles.imagem1}
+          />
+        </View>
         <Image
-          source={require("./assets/img/Login.png")}
-          style={styles.logo}
-          resizeMode="contain"
+          source={require("./assets/img/Logo4.png")}
+          style={styles.imagem2}
         />
+        <Text style={styles.titulo}>Login</Text>
       </View>
 
       {/* campos de entrada */}
@@ -128,27 +133,41 @@ export default function Login({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
+    container: {
     flex: 1,
-    backgroundColor: "white",
+    justifyContent: "flex-start",
+    backgroundColor: "#fff",
   },
-  header: {
-    backgroundColor: "#01283C",
+  containerImagem: {
+    justifyContent: "flex-start",
+    height: 650,
+  },
+  imagemCaixa1: {
     alignItems: "center",
-    borderBottomLeftRadius: 370,
-    borderBottomRightRadius: 370,
-    paddingTop: 50,
-    paddingBottom: 30,
+    width: "100%",
+    height: 630,
+    position: "relative",
   },
-  logo: {
-    width: 800,
-    height: 500,
+  imagem1: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 10,
+  },
+  imagem2: {
+    width: "90%",
+    height: 430,
+    position: "absolute",
+    right: 40,
+    top: 40,
   },
   titulo: {
+    fontSize: 65,
+    marginBottom: 20,
+    position: "absolute",
+    left: 330,
+    top: 490,
     color: "#fff",
-    fontSize: 28,
     fontFamily: "titulos",
-    marginTop: 10,
   },
   form: {
     marginTop: 30,

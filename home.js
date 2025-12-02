@@ -9,8 +9,9 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useFonts } from "expo-font";
-import { auth } from "./firebaseConfig";
-import { onAuthStateChanged, reload } from "firebase/auth";
+import { auth, db } from "./firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function HomeScreen({ navigation }) {
   const [fontsLoaded] = useFonts({
@@ -22,19 +23,27 @@ export default function HomeScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 🔹 Observa o usuário logado e obtém o nome salvo no Authentication
+    // 🔹 Observa o usuário logado e busca o nome do Firestore
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       try {
         if (user) {
-          // força recarregar dados atualizados (garante pegar displayName recente)
-          await reload(user);
-          console.log("Nome do usuário logado:", user.displayName); // 🔹 TESTE
-          setUserName(user.displayName || "Usuário");
+          // Busca os dados do usuário no Firestore
+          const userDoc = await getDoc(doc(db, "usuarios", user.uid));
+          
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            console.log("✅ Nome do usuário no Firestore:", userData.nome);
+            setUserName(userData.nome || "Usuário");
+          } else {
+            // Fallback para displayName se não encontrar no Firestore
+            console.log("⚠️ Documento não encontrado, usando displayName");
+            setUserName(user.displayName || "Usuário");
+          }
         } else {
           setUserName("Visitante");
         }
       } catch (error) {
-        console.log("Erro ao buscar nome do usuário:", error);
+        console.error("❌ Erro ao buscar nome do usuário:", error);
         setUserName("Usuário");
       } finally {
         setLoading(false);
@@ -44,9 +53,10 @@ export default function HomeScreen({ navigation }) {
     return unsubscribe;
   }, []);
 
- const handleIntro = () => {
-  navigation.navigate("Voltar"); // Em vez de replace
-};
+  const handleIntro = () => {
+    navigation.navigate("Voltar");
+  };
+
   if (!fontsLoaded || loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -62,7 +72,7 @@ export default function HomeScreen({ navigation }) {
         style={styles.imagem}
       />
 
-      {/* 🔹 Exibe o nome salvo no Firebase Authentication */}
+      {/* 🔹 Exibe o nome buscado do Firestore */}
       <Text style={styles.titulo}>Olá, {userName}!</Text>
 
       <Text style={styles.texto}>

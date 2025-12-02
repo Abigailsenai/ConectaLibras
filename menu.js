@@ -8,8 +8,9 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native";
-import { auth } from "./firebaseConfig";
+import { auth, db } from "./firebaseConfig";
 import { signOut, onAuthStateChanged, reload } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import { useFonts } from "expo-font";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Octicons from "@expo/vector-icons/Octicons";
@@ -25,48 +26,20 @@ export default function Menu({ navigation }) {
   });
 
   useEffect(() => {
-    console.log("🔍 Menu montado, verificando autenticação...");
-    
-    // Pequeno delay para garantir que o Firebase está pronto
-    const checkAuth = async () => {
-      // Aguarda 100ms para o Firebase estabilizar
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const currentUser = auth.currentUser;
-      console.log("🔑 auth.currentUser:", currentUser ? currentUser.email : "null");
-      
-      if (currentUser) {
-        console.log("✅ Usuário já autenticado:", currentUser.email);
-        console.log("📝 DisplayName:", currentUser.displayName);
-        setUserName(currentUser.displayName || "usuário");
-        setLoadingName(false);
-      }
-    };
-    
-    checkAuth();
-    
+    // 🔹 Observa o usuário logado e obtém o nome salvo no Authentication
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      console.log("👤 onAuthStateChanged disparado no Menu");
       try {
         if (user) {
-          console.log("✅ Usuário encontrado:", user.email);
+          // força recarregar dados atualizados (garante pegar displayName recente)
           await reload(user);
-          console.log("📝 DisplayName após reload:", user.displayName);
-          setUserName(user.displayName || "usuário");
+          console.log("Nome do usuário logado:", user.displayName); // 🔹 TESTE
+          setUserName(user.displayName || "Usuário");
         } else {
-          console.log("❌ Nenhum usuário autenticado");
-          // Tenta uma última vez buscar o currentUser
-          const fallbackUser = auth.currentUser;
-          if (fallbackUser) {
-            console.log("🔄 Fallback: Usuário encontrado via currentUser");
-            setUserName(fallbackUser.displayName || "usuário");
-          } else {
-            setUserName("Visitante");
-          }
+          setUserName("Visitante");
         }
       } catch (error) {
-        console.log("⚠️ Erro ao buscar nome do usuário:", error);
-        setUserName("usuário");
+        console.log("Erro ao buscar nome do usuário:", error);
+        setUserName("Usuário");
       } finally {
         setLoadingName(false);
       }
@@ -112,9 +85,9 @@ export default function Menu({ navigation }) {
             source={require("./assets/img/Conta.png")}
             style={styles.imgusuario}
           />
-          {/* 🔹 Exibe o nome cadastrado no Firebase Authentication */}
+          {/* 🔹 Exibe o nome buscado do Authentication */}
           <Text style={styles.tituloUsuario}>
-            Olá, {userName ? userName : "usuário"}!
+            Olá!
           </Text>
         </View>
       </View>

@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Image,
-  ImageBackground,
 } from "react-native";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "./firebaseConfig";
@@ -56,19 +55,18 @@ export default function CadastroScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* View com imagem de fundo */}
       <View style={styles.containerImagem}>
         <View style={styles.imagemCaixa1}>
           <Image
-            source={require("./assets/img/Login.png")}
+            source={require("./assets/img/Circulo1.png")}
             style={styles.imagem1}
           />
         </View>
         <Image
-          source={require("./assets/img/Logo1.png")}
+          source={require("./assets/img/Logo4.png")}
           style={styles.imagem2}
         />
-        <Text style={styles.titulo}>Login</Text>
+        <Text style={styles.titulo}>Cadastro</Text>
       </View>
 
       {/* Campos do formulário */}
@@ -121,22 +119,17 @@ export default function CadastroScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
-  },
-  container: {
-    flex: 1,
     justifyContent: "flex-start",
     backgroundColor: "#fff",
   },
   containerImagem: {
     justifyContent: "flex-start",
-    marginBottom: 20,
-    height: 403,
+    height: 650,
   },
   imagemCaixa1: {
     alignItems: "center",
-    width: 500,
-    height: 500,
+    width: "100%",
+    height: 630,
     position: "relative",
   },
   imagem1: {
@@ -145,16 +138,20 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   imagem2: {
+    width: "90%",
+    height: 430,
     position: "absolute",
-     width: 230,
-    height: 230,
-    marginTop: 50,
+    right: 40,
+    top: 40,
   },
   titulo: {
+    fontSize: 65,
+    marginBottom: 20,
+    position: "absolute",
+    left: 265,
+    top: 490,
     color: "#fff",
-    fontSize: 30,
     fontFamily: "titulos",
-    marginTop: 10,
   },
   form: {
     marginTop: 25,
@@ -194,12 +191,12 @@ const styles = StyleSheet.create({
   },
   textoSimples: {
     color: "#01283C",
-    fontSize: 16,
+    fontSize: 25,
     fontFamily: "textos",
   },
   linkLogin: {
     color: "#419EBD",
-    fontSize: 18,
+    fontSize: 27,
     fontFamily: "titulos",
     textDecorationLine: "underline",
     marginTop: 5,
