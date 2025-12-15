@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Image,
+  ScrollView,
 } from "react-native";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "./firebaseConfig";
@@ -54,69 +55,87 @@ export default function CadastroScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.containerImagem}>
-        <View style={styles.imagemCaixa1}>
+    <ScrollView 
+      style={styles.scrollView}
+      contentContainerStyle={styles.scrollViewContent}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+    >
+      <View style={styles.container}>
+        <View style={styles.containerImagem}>
+          <View style={styles.imagemCaixa1}>
+            <Image
+              source={require("./assets/img/Circulo1.png")}
+              style={styles.imagem1}
+            />
+          </View>
           <Image
-            source={require("./assets/img/Circulo1.png")}
-            style={styles.imagem1}
+            source={require("./assets/img/Logo4.png")}
+            style={styles.imagem2}
           />
+          <Text style={styles.titulo}>Cadastro</Text>
         </View>
-        <Image
-          source={require("./assets/img/Logo4.png")}
-          style={styles.imagem2}
-        />
-        <Text style={styles.titulo}>Cadastro</Text>
+
+        {/* Campos do formulário */}
+        <View style={styles.form}>
+          <Text style={styles.label}>Nome</Text>
+          <TextInput
+            placeholder="Nome"
+            placeholderTextColor="#999"
+            value={nome}
+            onChangeText={setNome}
+            style={styles.input}
+            autoCapitalize="words"
+          />
+
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            placeholder="Email"
+            placeholderTextColor="#999"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            style={styles.input}
+          />
+
+          <Text style={styles.label}>Senha</Text>
+          <TextInput
+            placeholder="6 dígitos"
+            placeholderTextColor="#999"
+            value={senha}
+            onChangeText={setSenha}
+            secureTextEntry
+            style={styles.input}
+            autoCorrect={false}
+            textContentType="newPassword"
+          />
+
+          <TouchableOpacity style={styles.botao} onPress={handleCadastro}>
+            <Text style={styles.textoBotao}>Registre-se</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Rodapé com link de login */}
+        <View style={styles.footer}>
+          <Text style={styles.textoSimples}>Já tem uma conta?</Text>
+          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+            <Text style={styles.linkLogin}>Entrar</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-
-      {/* Campos do formulário */}
-      <View style={styles.form}>
-        <Text style={styles.label}>Nome</Text>
-        <TextInput
-          placeholder="Nome"
-          placeholderTextColor="#999"
-          value={nome}
-          onChangeText={setNome}
-          style={styles.input}
-        />
-
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          placeholder="Email"
-          placeholderTextColor="#999"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          style={styles.input}
-        />
-
-        <Text style={styles.label}>Senha</Text>
-        <TextInput
-          placeholder="6 dígitos"
-          placeholderTextColor="#999"
-          value={senha}
-          onChangeText={setSenha}
-          secureTextEntry
-          style={styles.input}
-        />
-
-        <TouchableOpacity style={styles.botao} onPress={handleCadastro}>
-          <Text style={styles.textoBotao}>Registre-se</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Rodapé com link de login */}
-      <View style={styles.footer}>
-        <Text style={styles.textoSimples}>Já tem uma conta?</Text>
-        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-          <Text style={styles.linkLogin}>Entrar</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+  },
   container: {
     flex: 1,
     justifyContent: "flex-start",
@@ -159,7 +178,7 @@ const styles = StyleSheet.create({
   },
   label: {
     color: "#01283C",
-    fontSize: 28,
+    fontSize: 35,
     fontFamily: "titulos",
     marginBottom: 5,
   },
@@ -171,7 +190,8 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: "#fff",
     fontFamily: "textos",
-    fontSize: 20,
+    fontSize: 24,
+    color: "#01283C", // Cor do texto explícita
   },
   botao: {
     backgroundColor: "#FFBE1D",
@@ -181,13 +201,14 @@ const styles = StyleSheet.create({
   },
   textoBotao: {
     textAlign: "center",
-    fontSize: 26,
+    fontSize: 36,
     fontFamily: "titulos",
     color: "#01283C",
   },
   footer: {
     alignItems: "center",
     marginTop: 25,
+    marginBottom: 30,
   },
   textoSimples: {
     color: "#01283C",
@@ -200,5 +221,6 @@ const styles = StyleSheet.create({
     fontFamily: "titulos",
     textDecorationLine: "underline",
     marginTop: 5,
+    marginBottom: 20,
   },
 });

@@ -251,7 +251,7 @@ export default function Teclado({ navigation }) {
           <TextInput
             style={styles.inputGrande}
             placeholder="Digite aqui..."
-            placeholderTextColor="#888888"
+            placeholderTextColor="#000"
             multiline
             scrollEnabled
             value={texto}
@@ -276,25 +276,15 @@ export default function Teclado({ navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.som, lendo && styles.somAtivo]}
-            onPress={lendo ? handlePararLeitura : handleLerTexto}
+            style={styles.som}
+            onPress={handleLerTexto}
             activeOpacity={0.7}
           >
             <AntDesign
-              name={lendo ? "pausecircle" : "sound"}
+              name="sound"
               size={45}
               color={lendo ? "#FFD05A" : "#fff"}
             />
-            {lendo && <Text style={styles.textoLendo}>Tocando...</Text>}
-          </TouchableOpacity>
-
-          {/* Botão de teste - REMOVA DEPOIS QUE FUNCIONAR */}
-          <TouchableOpacity
-            style={styles.botaoTeste}
-            onPress={handleTesteAudio}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.textoTeste}>🔧 Teste</Text>
           </TouchableOpacity>
         </View>
 

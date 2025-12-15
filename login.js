@@ -9,6 +9,8 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Image,
+  ScrollView,
+  Linking,
 } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "./firebaseConfig";
@@ -33,6 +35,19 @@ export default function Login({ navigation }) {
       });
   };
 
+  const handleSocialLogin = async (url, platform) => {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert("Erro", `Não foi possível abrir o link do ${platform}`);
+      }
+    } catch (error) {
+      Alert.alert("Erro", `Erro ao abrir ${platform}: ${error.message}`);
+    }
+  };
+
   const [fontsLoaded] = useFonts({
     titulos: require("./assets/fonts/gliker-regular.ttf"),
     textos: require("./assets/fonts/sanchez-font.ttf"),
@@ -47,93 +62,125 @@ export default function Login({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.containerImagem}>
-        <View style={styles.imagemCaixa1}>
+    <ScrollView 
+      style={styles.scrollView}
+      contentContainerStyle={styles.scrollViewContent}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+    >
+      <View style={styles.container}>
+        <View style={styles.containerImagem}>
+          <View style={styles.imagemCaixa1}>
+            <Image
+              source={require("./assets/img/Circulo1.png")}
+              style={styles.imagem1}
+            />
+          </View>
           <Image
-            source={require("./assets/img/Circulo1.png")}
-            style={styles.imagem1}
+            source={require("./assets/img/Logo4.png")}
+            style={styles.imagem2}
           />
+          <Text style={styles.titulo}>Login</Text>
         </View>
-        <Image
-          source={require("./assets/img/Logo4.png")}
-          style={styles.imagem2}
-        />
-        <Text style={styles.titulo}>Login</Text>
-      </View>
 
-      {/* campos de entrada */}
-      <View style={styles.form}>
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          placeholder="Seu email"
-          placeholderTextColor="#999"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          style={styles.input}
-        />
-
-        <Text style={styles.label}>Senha</Text>
-        <TextInput
-          placeholder="Senha"
-          placeholderTextColor="#999"
-          value={senha}
-          onChangeText={setSenha}
-          secureTextEntry
-          style={styles.input}
-        />
-
-        <TouchableOpacity style={styles.botao} onPress={handleLogin}>
-          <Text style={styles.textoBotao}>Entrar</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* separador e login social */}
-      <View style={styles.orContainer}>
-        <Text style={styles.orText}>-Ou-</Text>
-      </View>
-
-      {/* imagens dos logins sociais */}
-      <View style={styles.socialContainer}>
-        <TouchableOpacity>
-          <Image
-            source={require("./assets/img/Google.png")}
-            style={styles.socialIcon}
-            resizeMode="contain"
+        {/* campos de entrada */}
+        <View style={styles.form}>
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            placeholder="Seu email"
+            placeholderTextColor="#999"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            style={styles.input}
           />
-        </TouchableOpacity>
 
-        <TouchableOpacity>
-          <Image
-            source={require("./assets/img/face.png")}
-            style={styles.socialIcon}
-            resizeMode="contain"
+          <Text style={styles.label}>Senha</Text>
+          <TextInput
+            placeholder="Senha"
+            placeholderTextColor="#999"
+            value={senha}
+            onChangeText={setSenha}
+            secureTextEntry
+            style={styles.input}
+            autoCorrect={false}
+            textContentType="password"
           />
-        </TouchableOpacity>
 
-        <TouchableOpacity>
-          <Image
-            source={require("./assets/img/apple.png")}
-            style={styles.socialIcon}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity style={styles.botao} onPress={handleLogin}>
+            <Text style={styles.textoBotao}>Entrar</Text>
+          </TouchableOpacity>
+        </View>
 
-      {/* link de cadastro */}
-      <View style={styles.footer}>
-        <Text style={styles.textoSimples}>Não tem uma conta?</Text>
-        <TouchableOpacity onPress={() => navigation.navigate("Cadastro")}>
-          <Text style={styles.linkCadastro}>Cadastre-se</Text>
-        </TouchableOpacity>
+        {/* separador e login social */}
+        <View style={styles.orContainer}>
+          <Text style={styles.orText}>-Ou-</Text>
+        </View>
+
+        {/* imagens dos logins sociais */}
+        <View style={styles.socialContainer}>
+          <TouchableOpacity 
+            onPress={() => handleSocialLogin(
+              "https://accounts.google.com/v3/signin/accountchooser?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&ec=asw-gmail-globalnav-signin&flowEntry=AccountChooser&flowName=GlifWebSignIn&service=mail&dsh=S1057665098%3A1764781558504347",
+              "Google"
+            )}
+          >
+            <Image
+              source={require("./assets/img/Google.png")}
+              style={styles.socialIcon}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            onPress={() => handleSocialLogin(
+              "https://www.facebook.com/?locale=pt_BR",
+              "Facebook"
+            )}
+          >
+            <Image
+              source={require("./assets/img/face.png")}
+              style={styles.socialIcon}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            onPress={() => handleSocialLogin(
+              "https://www.icloud.com/",
+              "Apple"
+            )}
+          >
+            <Image
+              source={require("./assets/img/apple.png")}
+              style={styles.socialIcon}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+        </View>
+
+        {/* link de cadastro */}
+        <View style={styles.footer}>
+          <Text style={styles.textoSimples}>Não tem uma conta?</Text>
+          <TouchableOpacity onPress={() => navigation.navigate("Cadastro")}>
+            <Text style={styles.linkCadastro}>Cadastre-se</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-    container: {
+  scrollView: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+  },
+  container: {
     flex: 1,
     justifyContent: "flex-start",
     backgroundColor: "#fff",
@@ -187,7 +234,8 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: "#fff",
     fontFamily: "textos",
-    fontSize:24,
+    fontSize: 24,
+    color: "#01283C",
   },
   botao: {
     backgroundColor: "#FFBE1D",
@@ -204,8 +252,8 @@ const styles = StyleSheet.create({
   orContainer: {
     alignItems: "center",
     marginVertical: 10,
-    marginTop:40,
-    marginBottom:15,
+    marginTop: 40,
+    marginBottom: 15,
   },
   orText: {
     fontFamily: "titulos",
@@ -225,6 +273,7 @@ const styles = StyleSheet.create({
   footer: {
     alignItems: "center",
     marginTop: 25,
+    marginBottom: 30,
   },
   textoSimples: {
     color: "#01283C",
@@ -237,5 +286,6 @@ const styles = StyleSheet.create({
     fontFamily: "titulos",
     textDecorationLine: "underline",
     marginTop: 5,
+    marginBottom: 20,
   },
 });
